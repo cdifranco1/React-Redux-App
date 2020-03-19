@@ -1,48 +1,59 @@
 import React, { useEffect } from 'react';
-import {
-  Card, CardImg, CardText, CardBody,
-  CardTitle, CardSubtitle, Button
-} from 'reactstrap';
+
 import { connect } from 'react-redux';
-
-import { getData } from '../actions'
-
+import { getData, fetchMore } from '../actions'
 import { currencyFormat } from '../utils'
+
+import { TableHeader } from './TableHeader'
+
+export const column = {
+  width: '25%',
+  textAlign: 'left',
+}
+
+const container = {
+  display: 'flex', 
+  flexDirection: 'column', 
+  padding: '2%'
+}
+
 
 const CoinList = (props) => {
   console.log(props)
 
   useEffect(() => {
-    props.getData()
+    props.getData(props.listings)
+  }, [props.listings])
 
-    setInterval(() => {
-      props.getData()
-    }, 5000)
-  }, [])
+  const handleFetch = (e) => {
+    e.preventDefault()
+    props.fetchMore()
+  }
 
   return (
-    <>
-      <h1>I suck</h1>
+    <div style={container}>
+      <TableHeader />
       {props.coins.map(coin =>
-        <Card> 
-          <CardImg style={{width: '10%'}} src={coin.image}/>
-          <div>{coin.symbol}</div> 
-          <div>{coin.name}</div>
-          <div>{currencyFormat(coin.current_price)}</div>
-          <div>{currencyFormat(coin.market_cap)}</div>
-        </Card>
+        <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}> 
+          <div style={column}><img style={{width: '10%', marginRight: '2%'}} src={coin.image}/>{coin.name}</div>
+          <div style={column}>{coin.symbol}</div> 
+          <div style={column}>{currencyFormat(coin.current_price)}</div>
+          <div style={column}>{currencyFormat(coin.market_cap)}</div>
+        </div>
       )}
-      <button onClick={props.getData}>Fetch Coin Data</button>
-    </>
+      {(props.isFetchingData && <button style={{width: '15%', margin: '0 auto'}}>Loading...</button>) ||
+      <button onClick={handleFetch} style={{width: '15%', margin: '0 auto'}}>More</button>}
+    </div>
   )
 }
 
 const mapStateToProps = (state) => {
   return {
+    listings: state.listings,
     coins: state.coins,
     isFetchingData: state.isFetchingData
   }
 }
 
 
-export default connect( mapStateToProps, { getData })(CoinList)
+export default connect( mapStateToProps, { getData, fetchMore })(CoinList)
